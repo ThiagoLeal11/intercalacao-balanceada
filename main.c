@@ -8,7 +8,7 @@
 #include <string.h>
 #include "libs/tapes.h"
 
-
+// Todo Use a better sort algorithm.
 // Worsted code ever to sort a vector, but it is quick to write. Hehehehe
 void bubbleSort(int* u, int n) {
     int aux;
@@ -80,27 +80,6 @@ int getNextIndexOfRange(int totalSize, TapeRange range, int idx) {
             return (idx <= totalSize) ? idx : 0;
         } else {
             return (idx <= range.end) ? idx : range.start;
-        }
-    }
-}
-
-
-// Return the previous valid index for an specific range.
-int getPreviousIndexOfRange(int totalSize, TapeRange range, int idx) {
-    // Adjust the block size for index range.
-    totalSize -= 1;
-
-    // Increment index.
-    idx--;
-
-    // Check for the range.
-    if (range.start <= range.end) {
-        return (idx >= range.start) ? idx : range.end;
-    } else {
-        if (idx <= range.end) {
-            return (idx >= 0) ? idx : totalSize;
-        } else {
-            return (idx >= range.start) ? idx : range.end;
         }
     }
 }
@@ -231,7 +210,7 @@ bool mergeBlock(FILE *auxTapes[], TapeRange read, int writeIdx, int memorySize) 
 }
 
 
-
+// Merge each blocks in read tapes range to put on write tapes range.
 void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, TapeRange writeRange, int memorySize) {
     int idx;
     bool canMerge;
@@ -256,7 +235,10 @@ void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, Ta
 }
 
 
-
+// Make the external merge based on 3 steps:
+// 1. Read the file sorting the batch based on memory size and put it in a tape ranges.
+// 2. Merge each block and put in another tape range. Do it while has to blocks in the same tape.
+// 3. Merge the tapes and copy it to the final tape.
 int externalMergeSort(const char *inputFilename, const char *outputFilename, const char *divider, int memorySize, int auxTapesQnt) {
     int rangeSize, size, i, iter;
     TapeRange readRange, writeRange;
@@ -335,7 +317,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     return 0;
 }
 
-
+// Todo, make a user interface.
 int main() {
     externalMergeSort("teste.txt", "outro0.txt", ",", 1, 6);
 
