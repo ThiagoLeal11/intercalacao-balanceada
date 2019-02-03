@@ -7,23 +7,30 @@
 #include <math.h>
 #include <string.h>
 #include "libs/tapes.h"
+#include "libs/render.h"
 
-// Todo Use a better sort algorithm.
-// Worsted code ever to sort a vector, but it is quick to write. Hehehehe
-void bubbleSort(int* u, int n) {
+void quickSort(int *array, int start, int end) {
     int aux;
-    int i;
-    int j;
-
-    for (i=0; i<n; i++) {
-        for (j=n-1; j>i; j--) {
-            if (u[j-1] > u[j]) {
-                aux = u[j-1];
-                u[j-1] = u[j];
-                u[j] = aux;
-            }
+    int i = start;
+    int j = end - 1;
+    int pivot = array[ (start + end) / 2 ];
+    while (i <= j) {
+        while (i<end && array[i] < pivot)
+            i++;
+        while (j>start && array[j] > pivot)
+            j--;
+        if (i <= j) {
+            aux = array[i];
+            array[i] = array[j];
+            array[j] = aux;
+            i++;
+            j--;
         }
     }
+    if (i < end)
+        quickSort (array, i, end);
+    if (j > start)
+        quickSort (array, start, j+1);
 }
 
 
@@ -146,7 +153,7 @@ int firstMergePass(FILE *input, FILE *auxTapes[], TapeRange range, int memorySiz
         }
 
         // Sort the memory.
-        bubbleSort(memory, i);
+        quickSort(memory, 0, i);
 
         // Save the numbers from memory on tape.
         for (j = 0; j < i; j++) {
@@ -242,6 +249,8 @@ void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, Ta
 int externalMergeSort(const char *inputFilename, const char *outputFilename, const char *divider, int memorySize, int auxTapesQnt) {
     int rangeSize, size, i, iter;
     TapeRange readRange, writeRange;
+    char name[20];
+    int readPrint = 0;
 
     if (memorySize <= 1) {
         printf("Impossible to run the sort, insufficient memory");
@@ -252,7 +261,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     rangeSize = (memorySize < auxTapesQnt - 1) ? memorySize : auxTapesQnt - 1;
 
     // Open the file for input.
-    FILE *input = fopen("teste.txt", "r+");
+    FILE *input = fopen(inputFilename, "r+");
 
     // Cant open the file.
     if (!input) {
@@ -265,7 +274,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
 
     // Init tapes range.
     readRange.start = 0;
-    readRange.end = rangeSize-1;
+    readRange.end = rangeSize - 1;
     writeRange.start = rangeSize;
     writeRange.end = (writeRange.start + rangeSize < auxTapesQnt) ? writeRange.start + rangeSize - 1 : auxTapesQnt - 1;
 
@@ -279,7 +288,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     closeAuxTapes(auxTapes, readRange);
 
     // Calc the number of times to merge.
-    iter = (int) ceil(log10((double) size/memorySize)/log10(rangeSize));
+    iter = (int) ceil(log10((double) size / memorySize) / log10(rangeSize));
 
     for (i = 0; i < iter; i++) {
         // Merge the blocks on read tapes and put on write tapes.
@@ -288,6 +297,19 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
         // Update the ranges
         readRange = writeRange;
         writeRange = getNewRange(auxTapesQnt, rangeSize, readRange);
+
+//        printf("-%d-", readRange);
+
+//        for (int j = 0; j < auxTapesQnt; j++) {
+//            printf("\n[Aux Tape %d]\n", i);
+//            sprintf(name, "aux%d.txt", i);
+//
+//            readPrint = readNumberFromAuxTape(name);
+//            while(readPrint != -1) {
+//                printf("%d, ", readPrint);
+//                readPrint = readNumberFromAuxTape(name);
+//            }
+//        }
     }
 
     // Get the final range of length 1.
@@ -319,7 +341,65 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
 
 // Todo, make a user interface.
 int main() {
-    externalMergeSort("teste.txt", "outro0.txt", ",", 1, 6);
+
+    int option = 1;
+    int memSize = 4;
+    int auxTapes = 6;
+    char inputFile[30];
+    char outputFile[30];
+
+    strcpy(inputFile, "unsorted.txt");
+    strcpy(outputFile, "sorted.txt");
+
+    while (option) {
+
+        printMenu();
+        scanf("%d", &option);
+
+        switch (option) {
+            case 1:
+                printHeader("General Settings");
+                printf("\nMemory Size: %d", memSize);
+                printf("\nAux Tapes: %d", auxTapes);
+                printf("\nInput File: %s", inputFile);
+                printf("\nOutput File: %s", outputFile);
+                printf("\nSorting Algorithm: QuickSort");
+
+                waitForChar("\n\nPress any key to continue...");
+                break;
+            case 2:
+                printHeader("Memory Size");
+                printf("\nDefault: %d\n", memSize);
+                printf("\nNew Memory Size: ");
+                scanf("%d", &memSize);
+                printf("\nMemory set to: %d", memSize);
+                waitForChar("\n\nPress any key to continue...");
+                break;
+            case 3:
+                printHeader("Input File");
+                printf("\nDefault: %s\n", inputFile);
+                printf("\nNew Input File: ");
+                scanf("%s", inputFile);
+                printf("\nInput File set to: %s", inputFile);
+                waitForChar("\n\nPress any key to continue...");
+                break;
+            case 4:
+                printHeader("Output File");
+                printf("\nDefault: %s\n", outputFile);
+                printf("\nNew Output File: ");
+                scanf("%s", outputFile);
+                printf("\nOutput File set to: %s", outputFile);
+                waitForChar("\n\nPress any key to continue...");
+                break;
+            case 5:
+                printHeader("Sorting File");
+                externalMergeSort(inputFile, outputFile, ",", memSize, auxTapes);
+                waitForChar("\n\nPress any key to continue...");
+                break;
+        }
+    }
+
+
 
     return 0;
 }
