@@ -71,7 +71,7 @@ void printMenu() {
     printf("[3] - Define Input File\n");
     printf("[4] - Define Output File\n");
     printf("[5] - Start Sorting\n");
-    printf("[0] - Exit.\n\n");
+    printf("[0] - Exit\n\n");
 
     printf("Option: ");
 }
