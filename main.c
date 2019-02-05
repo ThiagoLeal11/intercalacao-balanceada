@@ -298,7 +298,21 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
         readRange = writeRange;
         writeRange = getNewRange(auxTapesQnt, rangeSize, readRange);
 
-//        printf("-%d-", readRange);
+        // Print header
+        printf("Read Index   Write Index   Numbers");
+
+        // Print the tapes state
+        for (int j = 0; j < auxTapesQnt; j++) {
+            printf("Tape %d", j);
+
+            TapeRange range = {j, j};
+
+            openAuxTapesForRead(auxTapes, range);
+
+            do {
+                readPrint = readNumberFromAuxTape(auxTapes[j]);
+            } while (false);
+        }
 
 //        for (int j = 0; j < auxTapesQnt; j++) {
 //            printf("\n[Aux Tape %d]\n", i);
