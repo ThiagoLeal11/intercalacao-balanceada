@@ -130,6 +130,14 @@ TapeRange getNewRange(int totalSize, int rangeSize, TapeRange blockedRange) {
     return newRange;
 }
 
+bool isIndexOnRange(TapeRange range, int idx) {
+    if (range.start <= range.end) {
+        return (idx >= range.start && idx <= range.end);
+    } else {
+        return (idx <= range.end && idx >= range.start);
+    }
+}
+
 
 // Sort the batches in memory and save them on the tapes in interleaved mode.
 int firstMergePass(FILE *input, FILE *auxTapes[], TapeRange range, int memorySize, const char *divider) {
@@ -318,21 +326,23 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
 
         // Print the tapes state
         for (int j = 0; j < auxTapesQnt; j++) {
-            printf("%c \t %c \t Tape %d : " , ((j < readRange.end && j > readRange.start) ? '*' : ' '), ((j < writeRange.end && j > writeRange.start) ? '*' : ' '), j);
+            printf("%c \t %c \t Tape %d : " ,
+                    (isIndexOnRange(readRange, j) ? '*' : ' '),
+                    (isIndexOnRange(writeRange, j)) ? '*' : ' ',
+                    j);
 
-            TapeRange range = {j, j};
+            TapeRange auxRange = {j, j};
+            openAuxTapesForRead(auxTapes, auxRange);
 
-            openAuxTapesForRead(auxTapes, range);
-
-            do {
-                readPrint = readNumberFromAuxTape(auxTapes[j]);
-                if (readPrint != -1) {
-                    printf("%d |", readPrint);
-                } else {
-                    count++;
-                }
-
-            } while (count < 2);
+//            do {
+//                readPrint = readNumberFromAuxTape(auxTapes[j]);
+//                if (readPrint != -1) {
+//                    printf("%d |", readPrint);
+//                } else {
+//                    count++;
+//                }
+//
+//            } while (count < 2);
             printf("\n");
         }
 
