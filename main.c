@@ -138,6 +138,9 @@ int firstMergePass(FILE *input, FILE *auxTapes[], TapeRange range, int memorySiz
     int memory[memorySize];
     int tapeSelector = range.start;
 
+    // Open tapes for write.
+    openAuxTapesForWrite(auxTapes, range);
+
     // Read all the numbers from input.
     while (!isFileEnd) {
         // Read numbers from the file and fill the memory
@@ -157,8 +160,11 @@ int firstMergePass(FILE *input, FILE *auxTapes[], TapeRange range, int memorySiz
 
         // Save the numbers from memory on tape.
         for (j = 0; j < i; j++) {
-            writeOnAuxTape(auxTapes[tapeSelector], memory[j], (j == i-1)); // Pass if this number is the last on memory.
+            writeOnAuxTape(auxTapes[tapeSelector], memory[j]);
         }
+
+        // Save -1 indicating that block ended.
+        writeOnAuxTape(auxTapes[tapeSelector], -1);
 
         // Increment or reset tapeSelector.
         if (tapeSelector < range.end) {
@@ -168,8 +174,8 @@ int firstMergePass(FILE *input, FILE *auxTapes[], TapeRange range, int memorySiz
         }
     }
 
-    // Close the input.
-    fclose(input);
+    // Close tapes before write
+    closeAuxTapes(auxTapes, range);
 
     return size;
 }
@@ -181,8 +187,6 @@ bool mergeBlock(FILE *auxTapes[], TapeRange read, int writeIdx, int memorySize) 
 
     int memory[memorySize];
     int mIdx = 0;
-    int auxNumber;
-
     // Read the first block number of each tape.
     for (i = read.start; i <= read.end; i++) {
         memory[mIdx++] = readNumberFromAuxTape(auxTapes[i]);
@@ -198,20 +202,20 @@ bool mergeBlock(FILE *auxTapes[], TapeRange read, int writeIdx, int memorySize) 
         return false;
     }
 
+    // Merge the entirely read range and write into write tape
     while (!isBlockEnd(memory, memorySize)) {
         // Get the mim index from read tapes.
         mIdx = getMinIndex(memory, memorySize);
 
-        // Save the mim number.
-        auxNumber = memory[mIdx];
+        // Write the mim number on specific tape.
+        writeOnAuxTape(auxTapes[writeIdx], memory[mIdx]);
 
         // Get the next number from tape.
         memory[mIdx] = readNumberFromAuxTape(auxTapes[read.start + mIdx]);
-
-        // Write the mim number on specific tape and if memory is empty,
-        // tell this is the last number of the block.
-        writeOnAuxTape(auxTapes[writeIdx], auxNumber, isBlockEnd(memory, memorySize));
     }
+
+    // Write -1 to indicate that block ended.
+    writeOnAuxTape(auxTapes[writeIdx], -1);
 
     return true;
 }
@@ -249,7 +253,6 @@ void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, Ta
 int externalMergeSort(const char *inputFilename, const char *outputFilename, const char *divider, int memorySize, int auxTapesQnt) {
     int rangeSize, size, i, iter;
     TapeRange readRange, writeRange;
-    char name[20];
     int readPrint = 0;
 
     if (memorySize <= 1) {
@@ -257,11 +260,12 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
         return -1;
     }
 
-    // Define the max range size.
-    rangeSize = (memorySize < auxTapesQnt - 1) ? memorySize : auxTapesQnt - 1;
+    /*
+     * Tapes.
+     */
 
     // Open the file for input.
-    FILE *input = fopen(inputFilename, "r+");
+    FILE *input = fopen(inputFilename, "r");
 
     // Cant open the file.
     if (!input) {
@@ -272,28 +276,42 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     // init aux tapes.
     FILE *auxTapes[auxTapesQnt];
 
-    // Init tapes range.
-    readRange.start = 0;
-    readRange.end = rangeSize - 1;
-    writeRange.start = rangeSize;
-    writeRange.end = (writeRange.start + rangeSize < auxTapesQnt) ? writeRange.start + rangeSize - 1 : auxTapesQnt - 1;
+    /*
+     * First merge.
+     */
 
-    // Open tapes for read.
-    openAuxTapesForWrite(auxTapes, readRange);
+    // Define the max tape range size.
+    rangeSize = (memorySize < auxTapesQnt - 1) ? memorySize : auxTapesQnt - 1;
+
+    // Init tapes range.
+    readRange.start = auxTapesQnt;
+    readRange.end = auxTapesQnt;
+    writeRange = getNewRange(auxTapesQnt, rangeSize, readRange);
 
     // Read all the numbers from file and put every sort memory bloc on each tape.
-    size = firstMergePass(input, auxTapes, readRange, memorySize, divider);
+    size = firstMergePass(input, auxTapes, writeRange, memorySize, divider);
 
-    // Open the files for read
-    closeAuxTapes(auxTapes, readRange);
+    // Close the input.
+    fclose(input);
+
+    /*
+     * Additional merges.
+     */
 
     // Calc the number of times to merge.
     iter = (int) ceil(log10((double) size / memorySize) / log10(rangeSize));
 
     for (i = 0; i < iter; i++) {
+        // Update the ranges
+        readRange = writeRange;
+        writeRange = getNewRange(auxTapesQnt, rangeSize, readRange);
+
         // Merge the blocks on read tapes and put on write tapes.
         mergeTapesBlocks(auxTapes, auxTapesQnt, readRange, writeRange, memorySize);
 
+        /*
+         * Print
+         */
 
         // Print header
         printf("\n\nRead Index   Write Index   Numbers\n");
@@ -305,8 +323,6 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
             TapeRange range = {j, j};
 
             openAuxTapesForRead(auxTapes, range);
-
-            int count = 0;
 
             do {
                 readPrint = readNumberFromAuxTape(auxTapes[j]);
@@ -320,10 +336,11 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
             printf("\n");
         }
 
-        // Update the ranges
-        readRange = writeRange;
-        writeRange = getNewRange(auxTapesQnt, rangeSize, readRange);
     }
+
+    /*
+     * Last Merge.
+     */
 
     // Get the final range of length 1.
     writeRange = getNewRange(auxTapesQnt, 1, readRange);

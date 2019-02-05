@@ -12,7 +12,7 @@ void openAuxTapesForRead(FILE **tape, TapeRange range);
 void openAuxTapesForWrite(FILE **tape, TapeRange range);
 void closeAuxTapes(FILE **tapes, TapeRange range);
 int readNumberFromAuxTape(FILE *tape);
-void writeOnAuxTape(FILE *tape, int number, bool lastOfBlock);
+void writeOnAuxTape(FILE *tape, int number);
 void copyForOutputFile(FILE *tape, FILE *output, const char *divider);
 
 #endif //INTERCALACAO_BALANCEADA_FILES_H

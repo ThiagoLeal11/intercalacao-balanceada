@@ -34,31 +34,20 @@ void closeAuxTapes(FILE **tapes, TapeRange range) {
 
 
 int readNumberFromAuxTape(FILE *tape) {
-    char control;
     int number;
 
     // Try to read the control char.
-    if (fscanf(tape, "%c", &control) == 1) {  // File not ended
-        if (control == ';') {
-            return -1;
-        } else {
-            fscanf(tape, "%d", &number);
-            return number;
-        }
-
+    if (fscanf(tape, "%d", &number) == 1) {  // File not ended
+        return number;
     } else {  // File ended, return -1.
         return -1;
     }
 }
 
 
-void writeOnAuxTape(FILE *tape, int number, bool lastOfBlock) {
+void writeOnAuxTape(FILE *tape, int number) {
     // Write the number on aux tape with an block identifier.
-    if (!lastOfBlock) {
-        fprintf(tape, ",%d", number);
-    } else {
-        fprintf(tape, ".%d;", number);
-    }
+    fprintf(tape, "%d ", number);
 }
 
 void copyForOutputFile(FILE *tape, FILE *output, const char *divider) {
