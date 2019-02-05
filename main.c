@@ -259,7 +259,7 @@ void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, Ta
 // 2. Merge each block and put in another tape range. Do it while has to blocks in the same tape.
 // 3. Merge the tapes and copy it to the final tape.
 int externalMergeSort(const char *inputFilename, const char *outputFilename, const char *divider, int memorySize, int auxTapesQnt) {
-    int rangeSize, size, i, iter;
+    int rangeSize, size, i, iter, count;
     TapeRange readRange, writeRange;
     int readPrint = 0;
 
@@ -322,27 +322,33 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
          */
 
         // Print header
-        printf("\n\nRead Index   Write Index   Numbers\n");
+        printf("\n\nTape    Read    Write    Numbers\n");
 
         // Print the tapes state
         for (int j = 0; j < auxTapesQnt; j++) {
-            printf("%c \t %c \t Tape %d : " ,
+            printf("  %d      %c        %c      | " ,
+                    j,
                     (isIndexOnRange(readRange, j) ? '*' : ' '),
-                    (isIndexOnRange(writeRange, j)) ? '*' : ' ',
-                    j);
+                    (isIndexOnRange(writeRange, j)) ? '*' : ' ');
 
             TapeRange auxRange = {j, j};
             openAuxTapesForRead(auxTapes, auxRange);
 
-//            do {
-//                readPrint = readNumberFromAuxTape(auxTapes[j]);
-//                if (readPrint != -1) {
-//                    printf("%d |", readPrint);
-//                } else {
-//                    count++;
-//                }
-//
-//            } while (count < 2);
+            count = 0;
+
+            do {
+                readPrint = readNumberFromAuxTape(auxTapes[j]);
+                if (readPrint != -1) {
+                    printf("%5d ", readPrint);
+                    count = 0;
+                } else {
+                    count++;
+                    if (count == 1) {
+                        printf("  | ");
+                    }
+                }
+
+            } while (count < 2);
             printf("\n");
         }
 
