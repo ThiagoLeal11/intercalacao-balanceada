@@ -348,7 +348,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
                         maxPrint++;
                     } else {
                         printf("\n|%8s|%8s|%9s| %5d ", "", "", "", readPrint);
-                        maxPrint = 0;
+                        maxPrint = 1;
                     }
                     count = 0;
                 } else {
@@ -368,6 +368,9 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     /*
      * Last Merge.
      */
+
+    // Update ReadRange.
+    readRange = writeRange;
 
     // Get the final range of length 1.
     writeRange = getNewRange(auxTapesQnt, 1, readRange);
