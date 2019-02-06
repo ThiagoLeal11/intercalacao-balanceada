@@ -1,6 +1,7 @@
 #define true 1
 #define false 0
 #define bool int
+#define maxPrintSize 20
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -259,9 +260,10 @@ void mergeTapesBlocks(FILE *auxTapes[], int auxTapesQnt, TapeRange readRange, Ta
 // 2. Merge each block and put in another tape range. Do it while has to blocks in the same tape.
 // 3. Merge the tapes and copy it to the final tape.
 int externalMergeSort(const char *inputFilename, const char *outputFilename, const char *divider, int memorySize, int auxTapesQnt) {
-    int rangeSize, size, i, iter, count;
+    int rangeSize, size, i, iter, count, maxPrint;
     TapeRange readRange, writeRange;
     int readPrint = 0;
+
 
     if (memorySize <= 1) {
         printf("Impossible to run the sort, insufficient memory");
@@ -322,11 +324,12 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
          */
 
         // Print header
-        printf("\n\nTape    Read    Write    Numbers\n");
+        printf("\n\n|  Tape  |  Read  |  Write  |  Numbers\n");
+        printDivision("+", "-", 4, 8, 8, 9, 139);
 
         // Print the tapes state
         for (int j = 0; j < auxTapesQnt; j++) {
-            printf("  %d      %c        %c      | " ,
+            printf("|   %d    |   %c    |    %c    | " ,
                     j,
                     (isIndexOnRange(readRange, j) ? '*' : ' '),
                     (isIndexOnRange(writeRange, j)) ? '*' : ' ');
@@ -335,11 +338,18 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
             openAuxTapesForRead(auxTapes, auxRange);
 
             count = 0;
+            maxPrint = 0;
 
             do {
                 readPrint = readNumberFromAuxTape(auxTapes[j]);
                 if (readPrint != -1) {
-                    printf("%5d ", readPrint);
+                    if (maxPrint < maxPrintSize) {
+                        printf("%5d ", readPrint);
+                        maxPrint++;
+                    } else {
+                        printf("\n|%8s|%8s|%9s| %5d ", "", "", "", readPrint);
+                        maxPrint = 0;
+                    }
                     count = 0;
                 } else {
                     count++;
@@ -350,6 +360,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
 
             } while (count < 2);
             printf("\n");
+            printDivision("+", "-", 4, 8, 8, 9, 139);
         }
 
     }
