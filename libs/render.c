@@ -67,10 +67,11 @@ void printMenu() {
 
     printf("\n\nChoose an option entering the corresponding number:\n\n");
     printf("[1] - Show Running Settings\n");
-    printf("[2] - Define Memory Size\n");
-    printf("[3] - Define Input File\n");
-    printf("[4] - Define Output File\n");
-    printf("[5] - Start Sorting\n");
+    printf("[2] - Change Memory Size\n");
+    printf("[3] - Change Input File\n");
+    printf("[4] - Change Output File\n");
+    printf("[5] - Change Elements Number\n");
+    printf("[6] - Start Sorting\n");
     printf("[0] - Exit\n\n");
 
     printf("Option: ");

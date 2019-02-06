@@ -396,17 +396,36 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
     return 0;
 }
 
-// Todo, make a user interface.
+void createRandonTape(const char *divider, int size, char *fileName){
+
+    // Open input file.
+    FILE *input;
+    input = fopen(fileName, "w");
+
+    if (input) {
+        for (int i = 0; i < size; i++){
+            fprintf(input, "%d%s", rand() % 999, divider);
+        }
+    } else {
+        printf("Can't create the file! ");
+    }
+
+    fclose(input);
+}
+
 int main() {
 
     int option = 1;
     int memSize = 4;
     int auxTapes = 6;
+    int elementsNumber = 100;
     char inputFile[30];
     char outputFile[30];
 
     strcpy(inputFile, "unsorted.txt");
     strcpy(outputFile, "sorted.txt");
+
+    createRandonTape(",", elementsNumber, inputFile);
 
     while (option) {
 
@@ -420,12 +439,13 @@ int main() {
                 printf("\nAux Tapes: %d", auxTapes);
                 printf("\nInput File: %s", inputFile);
                 printf("\nOutput File: %s", outputFile);
+                printf("\nNumber of Elements: %d", elementsNumber);
                 printf("\nSorting Algorithm: QuickSort");
 
                 waitForChar("\n\nPress any key to continue...");
                 break;
             case 2:
-                printHeader("Memory Size");
+                printHeader("Change Memory Size");
                 printf("\nDefault: %d\n", memSize);
                 printf("\nNew Memory Size: ");
                 scanf("%d", &memSize);
@@ -433,15 +453,17 @@ int main() {
                 waitForChar("\n\nPress any key to continue...");
                 break;
             case 3:
-                printHeader("Input File");
+                printHeader("Change Input File");
                 printf("\nDefault: %s\n", inputFile);
                 printf("\nNew Input File: ");
                 scanf("%s", inputFile);
                 printf("\nInput File set to: %s", inputFile);
+                createRandonTape(",", elementsNumber, inputFile);
+                printf("\n\n%s Created Sucessfully with %d elements", inputFile, elementsNumber);
                 waitForChar("\n\nPress any key to continue...");
                 break;
             case 4:
-                printHeader("Output File");
+                printHeader("Change Output File");
                 printf("\nDefault: %s\n", outputFile);
                 printf("\nNew Output File: ");
                 scanf("%s", outputFile);
@@ -449,6 +471,16 @@ int main() {
                 waitForChar("\n\nPress any key to continue...");
                 break;
             case 5:
+                printHeader("Change Elements Number");
+                printf("\nDefault: %d\n", elementsNumber);
+                printf("\nNew Quantity: ");
+                scanf("%d", &elementsNumber);
+                printf("\nElements Number set to: %d", elementsNumber);
+                createRandonTape(",", elementsNumber, inputFile);
+                printf("\n\n%s Created Sucessfully with %d elements", inputFile, elementsNumber);
+                waitForChar("\n\nPress any key to continue...");
+                break;
+            case 6:
                 printHeader("Sorting File");
                 externalMergeSort(inputFile, outputFile, ",", memSize, auxTapes);
                 waitForChar("\n\nPress any key to continue...");
