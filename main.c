@@ -291,7 +291,7 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
      */
 
     // Define the max tape range size.
-    rangeSize = (memorySize < auxTapesQnt - 1) ? memorySize : auxTapesQnt - 1;
+    rangeSize = (memorySize < auxTapesQnt - 2) ? memorySize : auxTapesQnt - 2;
 
     // Init tapes range.
     readRange.start = auxTapesQnt;
@@ -309,7 +309,8 @@ int externalMergeSort(const char *inputFilename, const char *outputFilename, con
      */
 
     // Calc the number of times to merge.
-    iter = (int) ceil(log10((double) size / memorySize) / log10(rangeSize));
+    int minRangeSize = (rangeSize < auxTapesQnt - rangeSize) ? rangeSize : auxTapesQnt - rangeSize;
+    iter = (int) ceil(log10((double) size / memorySize) / log10(minRangeSize));
 
     for (i = 0; i < iter; i++) {
         // Update the ranges
